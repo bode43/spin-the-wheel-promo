@@ -20,13 +20,14 @@
     modalClose: document.getElementById('modalClose'),
   };
 
+  /** Full segment copy — matches server `SEGMENTS` labels (wheel only splits grand prize across two lines). */
   const LABELS = [
-    '30% Discount',
-    '40% Discount',
+    '30% discount',
+    '40% discount',
     'Free gift worth 800',
     'Free gift worth 1,600',
     'Free gift worth 2,400',
-    'GRAND PRIZE: Free order worth 8,000 (ULTRA RARE)',
+    ['Grand prize: free order worth 8,000', '(Ultra rare)'],
   ];
 
   let wheelRotation = 0;
@@ -58,13 +59,28 @@
     return { ok: true, username: u };
   }
 
+  function setWheelLabelLines(span, entry) {
+    const lines = Array.isArray(entry) ? entry : [entry];
+    lines.forEach((line, j) => {
+      if (j > 0) span.appendChild(document.createElement('br'));
+      if (j > 0) {
+        const sub = document.createElement('span');
+        sub.className = 'wheel-label-sub';
+        sub.textContent = line;
+        span.appendChild(sub);
+      } else {
+        span.appendChild(document.createTextNode(line));
+      }
+    });
+  }
+
   function buildLabels() {
     el.wheelLabels.innerHTML = '';
     for (let i = 0; i < SEGMENTS; i += 1) {
       const li = document.createElement('li');
       li.style.transform = `rotate(${i * SEG_DEG}deg)`;
       const span = document.createElement('span');
-      span.textContent = LABELS[i];
+      setWheelLabelLines(span, LABELS[i]);
       /* Undo spoke rotation so labels stay horizontal */
       span.style.transform = `rotate(${-i * SEG_DEG}deg)`;
       li.appendChild(span);

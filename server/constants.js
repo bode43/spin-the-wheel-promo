@@ -1,13 +1,13 @@
 /** Canonical segment definitions — labels only; probabilities live in DB. */
 exports.SEGMENTS = [
-  { key: 'discount_30', label: '30% Discount' },
-  { key: 'discount_40', label: '40% Discount' },
+  { key: 'discount_30', label: '30% discount' },
+  { key: 'discount_40', label: '40% discount' },
   { key: 'gift_800', label: 'Free gift worth 800' },
   { key: 'gift_1600', label: 'Free gift worth 1,600' },
   { key: 'gift_2400', label: 'Free gift worth 2,400' },
   {
     key: 'grand_8000',
-    label: 'GRAND PRIZE: Free order worth 8,000 (ULTRA RARE)',
+    label: 'Grand prize: free order worth 8,000 (ultra rare)',
   },
 ];
 
