@@ -58,7 +58,8 @@
       li.style.transform = `rotate(${i * SEG_DEG}deg)`;
       const span = document.createElement('span');
       span.textContent = LABELS[i];
-      span.style.transform = `rotate(${-(i * SEG_DEG + SEG_DEG / 2)}deg)`;
+      /* Undo spoke rotation so labels stay horizontal */
+      span.style.transform = `rotate(${-i * SEG_DEG}deg)`;
       li.appendChild(span);
       el.wheelLabels.appendChild(li);
     }

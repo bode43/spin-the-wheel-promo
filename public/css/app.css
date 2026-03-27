@@ -373,24 +373,31 @@ body {
   z-index: 1;
 }
 
+/* Each li is a “spoke”: bottom-center pinned to wheel center, then rotated per segment */
 .wheel-labels li {
   position: absolute;
   left: 50%;
-  top: 50%;
-  width: 42%;
-  height: 50%;
+  bottom: 50%;
+  width: 38%;
+  height: 42%;
+  margin-left: -19%;
   transform-origin: 50% 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 2%;
   text-align: center;
-  font-size: clamp(0.55rem, 2.8vw, 0.68rem);
+  font-size: clamp(0.5rem, 2.5vw, 0.65rem);
   font-weight: 700;
-  line-height: 1.15;
-  color: rgba(255, 255, 255, 0.92);
-  text-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
-  padding-top: 8%;
+  line-height: 1.12;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.65);
+  box-sizing: border-box;
 }
 
 .wheel-labels li span {
   display: block;
+  max-width: 100%;
 }
 
 .suspense {
