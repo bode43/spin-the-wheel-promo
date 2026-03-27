@@ -20,7 +20,14 @@
     modalClose: document.getElementById('modalClose'),
   };
 
-  const LABELS = ['30% OFF', '40% OFF', 'Gift 800', 'Gift 1.6K', 'Gift 2.4K', 'GRAND'];
+  const LABELS = [
+    '30% Discount',
+    '40% Discount',
+    'Free gift worth 800',
+    'Free gift worth 1,600',
+    'Free gift worth 2,400',
+    'GRAND PRIZE: Free order worth 8,000 (ULTRA RARE)',
+  ];
 
   let wheelRotation = 0;
   let urgencySeconds = 0;
