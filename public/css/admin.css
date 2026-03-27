@@ -1,0 +1,181 @@
+:root {
+  --bg: #07030f;
+  --text: #f4f1ff;
+  --muted: rgba(244, 241, 255, 0.65);
+  --accent: #8b5cff;
+  --line: rgba(139, 92, 255, 0.35);
+  --err: #fb7185;
+  --ok: #34f5c5;
+  --font: system-ui, -apple-system, sans-serif;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.head h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+}
+
+.sub {
+  margin: 0 0 1.5rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.panel {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1rem 1.1rem 1.15rem;
+  margin-bottom: 1.25rem;
+  background: rgba(18, 10, 40, 0.45);
+}
+
+.panel h2 {
+  margin: 0 0 0.65rem;
+  font-size: 1.05rem;
+}
+
+label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+
+input[type='password'],
+input[type='text'],
+input[type='number'] {
+  width: 100%;
+  max-width: 420px;
+  padding: 0.55rem 0.65rem;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+button {
+  margin-top: 0.65rem;
+  padding: 0.55rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: rgba(139, 92, 255, 0.25);
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:hover {
+  background: rgba(139, 92, 255, 0.4);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.row button {
+  margin-top: 0;
+}
+
+.err {
+  color: var(--err);
+  font-size: 0.85rem;
+  margin: 0.5rem 0 0;
+}
+
+.ok {
+  color: var(--ok);
+  font-size: 0.85rem;
+  margin: 0.5rem 0 0;
+}
+
+.hint {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 0 0 0.5rem;
+}
+
+.grand-pct {
+  font-size: 0.9rem;
+  margin: 0 0 0.75rem;
+}
+
+.cfg-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+.cfg-table th,
+.cfg-table td {
+  border-bottom: 1px solid var(--line);
+  padding: 0.45rem 0.35rem;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.cfg-table input[type='number'] {
+  max-width: 100px;
+  margin: 0;
+}
+
+.redeem-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.redeem-row input {
+  flex: 1;
+  min-width: 200px;
+  margin: 0;
+}
+
+.redeem-row button {
+  margin: 0;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.data {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.data th,
+.data td {
+  border-bottom: 1px solid var(--line);
+  padding: 0.4rem 0.3rem;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.data td:nth-child(3) {
+  white-space: normal;
+  max-width: 220px;
+}

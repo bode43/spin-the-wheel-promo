@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0514" />
+    <title>Spin the Wheel — Exclusive Rewards</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Syne:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/app.css" />
+  </head>
+  <body>
+    <div class="bg-aurora" aria-hidden="true"></div>
+    <div class="bg-noise" aria-hidden="true"></div>
+
+    <main class="shell">
+      <header class="top-bar">
+        <p class="brand">Exclusive Drop</p>
+        <div class="urgency" id="urgencyLine" aria-live="polite">
+          <span class="urgency-dot"></span>
+          <span id="urgencyText">Loading offers…</span>
+        </div>
+      </header>
+
+      <section class="hero">
+        <h1 class="title">Spin the Wheel</h1>
+        <p class="subtitle">Enter your Instagram username — one spin per day. Rewards are real.</p>
+      </section>
+
+      <section class="entry card-glow" aria-label="Instagram username">
+        <label class="field-label" for="igUser">Instagram username</label>
+        <div class="field-row">
+          <span class="at-prefix" aria-hidden="true">@</span>
+          <input
+            id="igUser"
+            name="instagram"
+            type="text"
+            inputmode="text"
+            autocomplete="username"
+            maxlength="30"
+            placeholder="your.handle"
+            autocapitalize="none"
+            spellcheck="false"
+          />
+        </div>
+        <p class="hint" id="fieldHint">Use the same handle you’ll DM from.</p>
+        <p class="error" id="formError" role="alert" hidden></p>
+        <button type="button" class="btn-spin" id="spinBtn">
+          <span class="btn-spin__glow"></span>
+          <span class="btn-spin__label">Spin</span>
+        </button>
+      </section>
+
+      <section class="wheel-section" aria-label="Prize wheel">
+        <div class="wheel-frame card-glow">
+          <div class="pointer" aria-hidden="true"></div>
+          <div class="wheel-wrap">
+            <div class="wheel" id="wheel" aria-hidden="true">
+              <div class="wheel-disk" aria-hidden="true"></div>
+              <ul class="wheel-labels" id="wheelLabels" aria-hidden="true"></ul>
+              <div class="wheel-hub" aria-hidden="true"></div>
+            </div>
+          </div>
+        </div>
+        <p class="suspense" id="suspenseText" aria-live="polite"></p>
+      </section>
+
+      <footer class="foot">
+        <a class="admin-link" href="/admin.html">Admin</a>
+      </footer>
+    </main>
+
+    <div class="modal-backdrop" id="modalBackdrop" hidden>
+      <div
+        class="modal card-glow"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modalTitle"
+        id="resultModal"
+      >
+        <p class="modal-kicker" id="modalTitle">You unlocked</p>
+        <p class="modal-reward" id="modalReward"></p>
+        <div class="coupon-block">
+          <p class="coupon-label">Your code</p>
+          <div class="coupon-row">
+            <code class="coupon-code" id="modalCoupon"></code>
+            <button type="button" class="btn-copy" id="copyBtn">Copy</button>
+          </div>
+        </div>
+        <p class="modal-msg">
+          Take a screenshot now and send it via Instagram DM before the code expires!
+        </p>
+        <p class="modal-urgent">Code expires soon</p>
+        <button type="button" class="btn-close" id="modalClose">Got it</button>
+      </div>
+    </div>
+
+    <script src="/js/app.js" defer></script>
+  </body>
+</html>

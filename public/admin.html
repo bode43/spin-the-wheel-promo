@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Spin Wheel — Admin</title>
+    <link rel="stylesheet" href="/css/admin.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="head">
+        <h1>Admin</h1>
+        <p class="sub">Probabilities, records, and exports</p>
+      </header>
+
+      <section id="loginPanel" class="panel">
+        <label for="adminToken">Admin token</label>
+        <input id="adminToken" type="password" autocomplete="current-password" />
+        <button type="button" id="loginBtn">Sign in</button>
+        <p class="err" id="loginErr" hidden></p>
+      </section>
+
+      <section id="dash" class="dash" hidden>
+        <div class="row">
+          <button type="button" id="logoutBtn">Log out</button>
+          <button type="button" id="refreshBtn">Refresh records</button>
+          <button type="button" id="exportBtn">Download CSV</button>
+        </div>
+
+        <section class="panel">
+          <h2>Probability config</h2>
+          <p class="hint">
+            Grand prize weight ÷ total must stay <strong>strictly below 1%</strong>. Disabled segments use weight 0.
+          </p>
+          <p id="grandPct" class="grand-pct"></p>
+          <table class="cfg-table" id="cfgTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Reward</th>
+                <th>Weight</th>
+                <th>On</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <button type="button" id="saveCfgBtn">Save weights & toggles</button>
+          <p class="err" id="cfgErr" hidden></p>
+          <p class="ok" id="cfgOk" hidden>Saved.</p>
+        </section>
+
+        <section class="panel">
+          <h2>Redeem coupon</h2>
+          <div class="redeem-row">
+            <input id="redeemCode" type="text" placeholder="SW-..." />
+            <button type="button" id="redeemBtn">Mark redeemed</button>
+          </div>
+          <p class="err" id="redeemErr" hidden></p>
+        </section>
+
+        <section class="panel">
+          <h2>Spin records</h2>
+          <div class="table-scroll">
+            <table class="data" id="spinTable">
+              <thead>
+                <tr>
+                  <th>When</th>
+                  <th>User</th>
+                  <th>Reward</th>
+                  <th>Coupon</th>
+                  <th>IP</th>
+                  <th>Redeemed</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </div>
+    <script src="/js/admin.js" defer></script>
+  </body>
+</html>

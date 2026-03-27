@@ -1,0 +1,3 @@
+# One Instagram username per line (lowercase). Lines starting with # are ignored.
+demo_user
+instagram
