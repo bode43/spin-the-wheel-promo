@@ -2,8 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#07030f" />
+    <meta name="description" content="Spin wheel admin — probabilities, spin records, and CSV export." />
     <title>Spin Wheel — Admin</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Syne:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/css/admin.css" />
   </head>
   <body>
@@ -22,10 +31,11 @@
 
       <section id="dash" class="dash" hidden>
         <div class="row">
-          <button type="button" id="logoutBtn">Log out</button>
+          <button type="button" class="btn-ghost" id="logoutBtn">Log out</button>
           <button type="button" id="refreshBtn">Refresh records</button>
           <button type="button" id="exportBtn">Download CSV</button>
         </div>
+        <p class="err" id="exportErr" hidden></p>
 
         <section class="panel">
           <h2>Probability config</h2>
@@ -52,7 +62,8 @@
         <section class="panel">
           <h2>Redeem coupon</h2>
           <div class="redeem-row">
-            <input id="redeemCode" type="text" placeholder="SW-..." />
+            <label class="sr-only" for="redeemCode">Coupon code</label>
+            <input id="redeemCode" type="text" placeholder="SW-..." autocomplete="off" />
             <button type="button" id="redeemBtn">Mark redeemed</button>
           </div>
           <p class="err" id="redeemErr" hidden></p>

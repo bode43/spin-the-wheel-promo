@@ -1,0 +1,25 @@
+:root {
+  --bg: #07030f;
+  --bg2: #0c0820;
+  --text: #f4f1ff;
+  --muted: rgba(244, 241, 255, 0.65);
+  --accent: #8b5cff;
+  --line: rgba(139, 92, 255, 0.35);
+  --err: #fb7185;
+  --ok: #34f5c5;
+  --font: 'Outfit', system-ui, sans-serif;
+  --font-display: 'Syne', var(--font);
+  --radius: 14px;
+  --radius-lg: 20px;
+  --card: rgba(18, 10, 40, 0.55);
+}
+
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+button:focus:not(:focus-visible),
+input:focus:not(:focus-visible) {
+  outline: none;
+}

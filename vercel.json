@@ -5,7 +5,7 @@
     "api/index.js": {
       "memory": 1024,
       "maxDuration": 10,
-      "includeFiles": "public/**"
+      "includeFiles": ["public/**", "server/allowed_users.txt"]
     }
   }
 }

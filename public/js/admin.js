@@ -17,6 +17,7 @@
     logoutBtn: document.getElementById('logoutBtn'),
     refreshBtn: document.getElementById('refreshBtn'),
     exportBtn: document.getElementById('exportBtn'),
+    exportErr: document.getElementById('exportErr'),
     cfgTable: document.querySelector('#cfgTable tbody'),
     saveCfgBtn: document.getElementById('saveCfgBtn'),
     cfgErr: document.getElementById('cfgErr'),
@@ -54,6 +55,7 @@
       showLoginErr('Enter token.');
       return;
     }
+    el.loginBtn.disabled = true;
     try {
       await api('/api/admin/login', {
         method: 'POST',
@@ -66,13 +68,20 @@
       await loadAll();
     } catch (e) {
       showLoginErr(e.message || 'Login failed.');
+    } finally {
+      el.loginBtn.disabled = false;
     }
   }
 
   async function logout() {
-    await fetch('/api/admin/logout', { method: 'POST', credentials: 'same-origin' });
-    el.dash.hidden = true;
-    el.loginPanel.hidden = false;
+    el.logoutBtn.disabled = true;
+    try {
+      await fetch('/api/admin/logout', { method: 'POST', credentials: 'same-origin' });
+      el.dash.hidden = true;
+      el.loginPanel.hidden = false;
+    } finally {
+      el.logoutBtn.disabled = false;
+    }
   }
 
   function renderCfg(data) {
@@ -118,6 +127,7 @@
       const i = parseInt(inp.dataset.idx, 10);
       enabled[i] = inp.checked;
     });
+    el.saveCfgBtn.disabled = true;
     try {
       await api('/api/admin/config', {
         method: 'PUT',
@@ -129,6 +139,8 @@
     } catch (e) {
       el.cfgErr.textContent = e.message;
       el.cfgErr.hidden = false;
+    } finally {
+      el.saveCfgBtn.disabled = false;
     }
   }
 
@@ -141,7 +153,14 @@
   async function loadSpins() {
     const data = await api('/api/admin/spins?limit=100');
     el.spinTable.innerHTML = '';
-    (data.items || []).forEach((row) => {
+    const items = data.items || [];
+    if (!items.length) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td colspan="6" class="empty-cell">No spins recorded yet.</td>';
+      el.spinTable.appendChild(tr);
+      return;
+    }
+    items.forEach((row) => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${escapeHtml(fmtDate(row.createdAt))}</td>
@@ -156,24 +175,35 @@
   }
 
   async function exportCsv() {
-    const res = await fetch('/api/admin/export.csv', { credentials: 'same-origin' });
-    if (!res.ok) {
-      alert('Export failed — check session.');
-      return;
+    el.exportErr.hidden = true;
+    el.exportBtn.disabled = true;
+    try {
+      const res = await fetch('/api/admin/export.csv', { credentials: 'same-origin' });
+      if (!res.ok) {
+        el.exportErr.textContent = 'Export failed — check your session or try signing in again.';
+        el.exportErr.hidden = false;
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'spins.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      el.exportErr.textContent = e.message || 'Export failed. Check your connection and try again.';
+      el.exportErr.hidden = false;
+    } finally {
+      el.exportBtn.disabled = false;
     }
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'spins.csv';
-    a.click();
-    URL.revokeObjectURL(url);
   }
 
   async function redeem() {
     el.redeemErr.hidden = true;
     const code = el.redeemCode.value.trim();
     if (!code) return;
+    el.redeemBtn.disabled = true;
     try {
       await api(`/api/admin/coupon/${encodeURIComponent(code)}/redeem`, { method: 'PATCH' });
       el.redeemCode.value = '';
@@ -181,16 +211,32 @@
     } catch (e) {
       el.redeemErr.textContent = e.message;
       el.redeemErr.hidden = false;
+    } finally {
+      el.redeemBtn.disabled = false;
     }
   }
 
   async function loadAll() {
-    await Promise.all([loadConfig(), loadSpins()]);
+    el.refreshBtn.disabled = true;
+    try {
+      await Promise.all([loadConfig(), loadSpins()]);
+    } finally {
+      el.refreshBtn.disabled = false;
+    }
+  }
+
+  async function refreshSpinsOnly() {
+    el.refreshBtn.disabled = true;
+    try {
+      await loadSpins();
+    } finally {
+      el.refreshBtn.disabled = false;
+    }
   }
 
   el.loginBtn.addEventListener('click', login);
   el.logoutBtn.addEventListener('click', logout);
-  el.refreshBtn.addEventListener('click', loadSpins);
+  el.refreshBtn.addEventListener('click', refreshSpinsOnly);
   el.exportBtn.addEventListener('click', exportCsv);
   el.saveCfgBtn.addEventListener('click', saveConfig);
   el.redeemBtn.addEventListener('click', redeem);

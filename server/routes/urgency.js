@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const express = require('express');
+const { SEGMENTS } = require('../constants');
 
 const router = express.Router();
 
@@ -30,10 +31,15 @@ router.get('/urgency', (_req, res) => {
   const h = Math.floor(secs / 3600);
   const m = Math.floor((secs % 3600) / 60);
   const s = secs % 60;
+  const segmentDisplay = SEGMENTS.map((s) => ({
+    lines: Array.isArray(s.labelLines) && s.labelLines.length ? s.labelLines : [s.label],
+  }));
+
   res.json({
     rewardsLeftToday: rewardsLeft,
     nextResetSeconds: secs,
     nextResetFormatted: `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`,
+    segmentDisplay,
   });
 });
 

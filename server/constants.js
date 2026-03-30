@@ -7,7 +7,9 @@ exports.SEGMENTS = [
   { key: 'gift_2400', label: 'Free gift worth 2,400' },
   {
     key: 'grand_8000',
-    label: 'Grand prize: free order worth 8,000 (ultra rare)',
+    label: 'Grand prize: free order worth 8,000 (Ultra rare)',
+    /** Wheel shows two lines; modal and DB use `label`. */
+    labelLines: ['Grand prize: free order worth 8,000', '(Ultra rare)'],
   },
 ];
 

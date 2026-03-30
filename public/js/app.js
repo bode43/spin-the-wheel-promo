@@ -5,7 +5,21 @@
   const SEGMENTS = 6;
   const SEG_DEG = 360 / SEGMENTS;
 
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const FALLBACK_SEGMENT_DISPLAY = [
+    { lines: ['30% discount'] },
+    { lines: ['40% discount'] },
+    { lines: ['Free gift worth 800'] },
+    { lines: ['Free gift worth 1,600'] },
+    { lines: ['Free gift worth 2,400'] },
+    { lines: ['Grand prize: free order worth 8,000', '(Ultra rare)'] },
+  ];
+
+  let segmentLines = FALLBACK_SEGMENT_DISPLAY.map((s) => s.lines);
+
   const el = {
+    mainShell: document.getElementById('mainShell'),
     urgencyText: document.getElementById('urgencyText'),
     igUser: document.getElementById('igUser'),
     spinBtn: document.getElementById('spinBtn'),
@@ -14,25 +28,17 @@
     wheelLabels: document.getElementById('wheelLabels'),
     suspenseText: document.getElementById('suspenseText'),
     modalBackdrop: document.getElementById('modalBackdrop'),
+    resultModal: document.getElementById('resultModal'),
     modalReward: document.getElementById('modalReward'),
     modalCoupon: document.getElementById('modalCoupon'),
     copyBtn: document.getElementById('copyBtn'),
     modalClose: document.getElementById('modalClose'),
   };
 
-  /** Full segment copy — matches server `SEGMENTS` labels (wheel only splits grand prize across two lines). */
-  const LABELS = [
-    '30% discount',
-    '40% discount',
-    'Free gift worth 800',
-    'Free gift worth 1,600',
-    'Free gift worth 2,400',
-    ['Grand prize: free order worth 8,000', '(Ultra rare)'],
-  ];
-
   let wheelRotation = 0;
   let urgencySeconds = 0;
   let urgencyRewards = 0;
+  let modalFocusCleanup = null;
 
   function showError(msg) {
     el.formError.textContent = msg;
@@ -59,18 +65,14 @@
     return { ok: true, username: u };
   }
 
-  function setWheelLabelLines(span, entry) {
-    const lines = Array.isArray(entry) ? entry : [entry];
-    lines.forEach((line, j) => {
+  function setWheelLabelLines(span, lines) {
+    const list = Array.isArray(lines) && lines.length ? lines : [String(lines)];
+    list.forEach((line, j) => {
       if (j > 0) span.appendChild(document.createElement('br'));
-      if (j > 0) {
-        const sub = document.createElement('span');
-        sub.className = 'wheel-label-sub';
-        sub.textContent = line;
-        span.appendChild(sub);
-      } else {
-        span.appendChild(document.createTextNode(line));
-      }
+      const lineEl = document.createElement('span');
+      lineEl.className = j === 0 ? 'wheel-label-line' : 'wheel-label-sub';
+      lineEl.textContent = line;
+      span.appendChild(lineEl);
     });
   }
 
@@ -78,10 +80,12 @@
     el.wheelLabels.innerHTML = '';
     for (let i = 0; i < SEGMENTS; i += 1) {
       const li = document.createElement('li');
+      li.className = 'wheel-spoke';
+      if (i === 5) li.classList.add('is-grand');
       li.style.transform = `rotate(${i * SEG_DEG}deg)`;
       const span = document.createElement('span');
-      setWheelLabelLines(span, LABELS[i]);
-      /* Undo spoke rotation so labels stay horizontal */
+      span.className = 'wheel-label-inner';
+      setWheelLabelLines(span, segmentLines[i] || []);
       span.style.transform = `rotate(${-i * SEG_DEG}deg)`;
       li.appendChild(span);
       el.wheelLabels.appendChild(li);
@@ -97,6 +101,11 @@
   }
 
   function animateRotation(from, to, durationMs, easing, onDone) {
+    if (prefersReducedMotion || durationMs <= 0) {
+      el.wheel.style.transform = `rotate(${to}deg)`;
+      onDone(to);
+      return;
+    }
     const t0 = performance.now();
     function frame(now) {
       const u = Math.min(1, (now - t0) / durationMs);
@@ -109,11 +118,6 @@
     requestAnimationFrame(frame);
   }
 
-  /**
-   * Absolute rotation increase so segment `index` center sits under top pointer.
-   * Pointer at top; segment 0 starts at -90° in conic-gradient (top middle of slice 0).
-   */
-  /** Remainder (mod 360) where segment `index` center sits under the top pointer. */
   function rotationModForIndex(index) {
     return (330 - index * SEG_DEG + 360) % 360;
   }
@@ -123,7 +127,6 @@
     return fullSpins * 360 + (360 - index * SEG_DEG - SEG_DEG / 2 + j);
   }
 
-  /** From absolute rotation `current`, add full spins + twist so `targetIndex` centers on pointer. */
   function extendRotationToIndex(current, targetIndex, extraFullSpins, jitterFrac) {
     const want = rotationModForIndex(targetIndex);
     const cur = ((current % 360) + 360) % 360;
@@ -133,18 +136,26 @@
     return current + extraFullSpins * 360 + delta + j;
   }
 
+  function spinTimings() {
+    if (prefersReducedMotion) {
+      return { near: 0, final: 0, grand: 0, settleDelay: 0, openDelay: 0 };
+    }
+    return { near: 4200, final: 3400, grand: 6500, settleDelay: 400, openDelay: 650 };
+  }
+
   function runSpinAnimation(winIndex, onComplete) {
     const start = wheelRotation;
     const jitter = Math.random() - 0.5;
+    const t = spinTimings();
 
     const doNearMiss = winIndex !== GRAND_INDEX;
     if (doNearMiss) {
       const nearEnd = start + deltaToLandIndex(GRAND_INDEX, 4, jitter * 0.5);
       el.suspenseText.textContent = 'The wheel chooses…';
-      animateRotation(start, nearEnd, 4200, easeInOutCubic, (r1) => {
+      animateRotation(start, nearEnd, t.near, easeInOutCubic, (r1) => {
         el.suspenseText.textContent = 'Almost there…';
         const finalTarget = extendRotationToIndex(r1, winIndex, 3, jitter);
-        animateRotation(r1, finalTarget, 3400, easeOutCubic, (r2) => {
+        animateRotation(r1, finalTarget, t.final, easeOutCubic, (r2) => {
           wheelRotation = r2;
           el.suspenseText.textContent = '';
           onComplete();
@@ -153,7 +164,7 @@
     } else {
       el.suspenseText.textContent = 'Legendary pull incoming…';
       const finalTarget = start + deltaToLandIndex(winIndex, 7, jitter);
-      animateRotation(start, finalTarget, 6500, easeOutCubic, (r2) => {
+      animateRotation(start, finalTarget, t.grand, easeOutCubic, (r2) => {
         wheelRotation = r2;
         el.suspenseText.textContent = '';
         onComplete();
@@ -189,7 +200,12 @@
       credentials: 'same-origin',
       body: JSON.stringify({ username, fingerprint }),
     });
-    const data = await res.json().catch(() => ({}));
+    let data = {};
+    try {
+      data = await res.json();
+    } catch {
+      data = {};
+    }
     if (!res.ok) {
       const err = data.error || 'Something went wrong.';
       throw new Error(err);
@@ -197,16 +213,76 @@
     return data;
   }
 
+  function getFocusable(root) {
+    const sel = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    return Array.from(root.querySelectorAll(sel)).filter((node) => {
+      if (node.disabled) return false;
+      if (node.getAttribute('aria-hidden') === 'true') return false;
+      return true;
+    });
+  }
+
   function openModal(rewardLabel, coupon) {
     el.modalReward.textContent = rewardLabel;
     el.modalCoupon.textContent = coupon;
     el.modalBackdrop.hidden = false;
     document.body.style.overflow = 'hidden';
+    if (el.mainShell) el.mainShell.setAttribute('inert', '');
+    const prevFocus = document.activeElement;
+    const modalRoot = el.resultModal;
+    const focusables = getFocusable(modalRoot);
+    const first = focusables[0] || el.modalClose;
+    requestAnimationFrame(() => {
+      first.focus();
+    });
+
+    function onKeydown(e) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeModal();
+        return;
+      }
+      if (e.key !== 'Tab' || focusables.length === 0) return;
+      const f0 = focusables[0];
+      const fLast = focusables[focusables.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === f0) {
+          e.preventDefault();
+          fLast.focus();
+        }
+      } else if (document.activeElement === fLast) {
+        e.preventDefault();
+        f0.focus();
+      }
+    }
+    document.addEventListener('keydown', onKeydown);
+    modalFocusCleanup = () => {
+      document.removeEventListener('keydown', onKeydown);
+      if (el.mainShell) el.mainShell.removeAttribute('inert');
+      if (prevFocus && typeof prevFocus.focus === 'function') prevFocus.focus();
+    };
   }
 
   function closeModal() {
     el.modalBackdrop.hidden = true;
     document.body.style.overflow = '';
+    if (modalFocusCleanup) {
+      const done = modalFocusCleanup;
+      modalFocusCleanup = null;
+      done();
+    } else if (el.mainShell) {
+      el.mainShell.removeAttribute('inert');
+    }
+  }
+
+  function applySegmentDisplay(raw) {
+    if (!Array.isArray(raw) || raw.length !== SEGMENTS) return;
+    const next = raw.map((entry) => {
+      if (entry && Array.isArray(entry.lines) && entry.lines.length) return entry.lines;
+      return [String(entry?.lines?.[0] ?? '')];
+    });
+    segmentLines = next;
+    buildLabels();
   }
 
   async function refreshUrgency() {
@@ -215,6 +291,7 @@
       const data = await res.json();
       urgencySeconds = data.nextResetSeconds ?? 0;
       urgencyRewards = data.rewardsLeftToday ?? 0;
+      applySegmentDisplay(data.segmentDisplay);
       renderUrgency();
     } catch {
       el.urgencyText.textContent = 'Limited rewards available today.';
@@ -259,15 +336,16 @@
       return;
     }
 
+    const t = spinTimings();
     setTimeout(() => {
       runSpinAnimation(serverIndex, () => {
         setTimeout(() => {
           openModal(payload.rewardLabel, payload.coupon);
           el.spinBtn.disabled = false;
           el.spinBtn.querySelector('.btn-spin__label').textContent = 'Spin';
-        }, 650);
+        }, t.openDelay);
       });
-    }, 400);
+    }, t.settleDelay);
   }
 
   el.spinBtn.addEventListener('click', onSpin);

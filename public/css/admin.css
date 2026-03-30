@@ -1,20 +1,26 @@
-:root {
-  --bg: #07030f;
-  --text: #f4f1ff;
-  --muted: rgba(244, 241, 255, 0.65);
-  --accent: #8b5cff;
-  --line: rgba(139, 92, 255, 0.35);
-  --err: #fb7185;
-  --ok: #34f5c5;
-  --font: system-ui, -apple-system, sans-serif;
+@import url('./tokens.css');
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 body {
   margin: 0;
-  min-height: 100vh;
+  min-height: 100dvh;
   font-family: var(--font);
-  background: var(--bg);
   color: var(--text);
+  background:
+    radial-gradient(120% 70% at 50% -15%, rgba(139, 92, 255, 0.22), transparent 55%),
+    radial-gradient(90% 50% at 100% 50%, rgba(56, 189, 248, 0.08), transparent 45%),
+    var(--bg);
 }
 
 [hidden] {
@@ -24,30 +30,40 @@ body {
 .wrap {
   max-width: 900px;
   margin: 0 auto;
-  padding: 1.5rem;
+  padding: 1.5rem 1.25rem 2.5rem;
 }
 
 .head h1 {
   margin: 0 0 0.25rem;
-  font-size: 1.5rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.35rem, 3vw, 1.65rem);
+  letter-spacing: -0.02em;
 }
 
 .sub {
   margin: 0 0 1.5rem;
   color: var(--muted);
   font-size: 0.9rem;
+  line-height: 1.45;
 }
 
 .panel {
   border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 1rem 1.1rem 1.15rem;
+  border-radius: var(--radius-lg);
+  padding: 1.15rem 1.2rem 1.25rem;
   margin-bottom: 1.25rem;
-  background: rgba(18, 10, 40, 0.45);
+  background: var(--card);
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+    0 18px 40px rgba(0, 0, 0, 0.35);
 }
 
 .panel h2 {
   margin: 0 0 0.65rem;
+  font-family: var(--font-display);
+  font-weight: 700;
   font-size: 1.05rem;
 }
 
@@ -63,12 +79,17 @@ input[type='text'],
 input[type='number'] {
   width: 100%;
   max-width: 420px;
-  padding: 0.55rem 0.65rem;
+  padding: 0.6rem 0.7rem;
   border-radius: 10px;
   border: 1px solid var(--line);
   background: rgba(0, 0, 0, 0.35);
   color: var(--text);
   font-size: 0.95rem;
+  font-family: var(--font);
+}
+
+input::placeholder {
+  color: rgba(244, 241, 255, 0.35);
 }
 
 button {
@@ -76,21 +97,30 @@ button {
   padding: 0.55rem 1rem;
   border-radius: 10px;
   border: 1px solid var(--line);
-  background: rgba(139, 92, 255, 0.25);
+  background: rgba(139, 92, 255, 0.22);
   color: var(--text);
   font-weight: 600;
+  font-family: var(--font);
   cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
 }
 
-button:hover {
-  background: rgba(139, 92, 255, 0.4);
+button:hover:not(:disabled) {
+  background: rgba(139, 92, 255, 0.38);
+  border-color: rgba(139, 92, 255, 0.55);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .row {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
+  align-items: center;
 }
 
 .row button {
@@ -113,11 +143,13 @@ button:hover {
   font-size: 0.85rem;
   color: var(--muted);
   margin: 0 0 0.5rem;
+  line-height: 1.45;
 }
 
 .grand-pct {
   font-size: 0.9rem;
   margin: 0 0 0.75rem;
+  color: var(--text);
 }
 
 .cfg-table {
@@ -130,9 +162,17 @@ button:hover {
 .cfg-table th,
 .cfg-table td {
   border-bottom: 1px solid var(--line);
-  padding: 0.45rem 0.35rem;
+  padding: 0.5rem 0.4rem;
   text-align: left;
   vertical-align: middle;
+}
+
+.cfg-table th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .cfg-table input[type='number'] {
@@ -159,6 +199,8 @@ button:hover {
 
 .table-scroll {
   overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid rgba(139, 92, 255, 0.2);
 }
 
 .data {
@@ -170,12 +212,44 @@ button:hover {
 .data th,
 .data td {
   border-bottom: 1px solid var(--line);
-  padding: 0.4rem 0.3rem;
+  padding: 0.45rem 0.35rem;
   text-align: left;
   white-space: nowrap;
+}
+
+.data th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .data td:nth-child(3) {
   white-space: normal;
   max-width: 220px;
+}
+
+.data .empty-cell {
+  white-space: normal;
+  text-align: center;
+  color: var(--muted);
+  padding: 1.75rem 1rem;
+  font-size: 0.88rem;
+}
+
+.btn-ghost {
+  background: rgba(0, 0, 0, 0.25);
+  border-color: rgba(244, 241, 255, 0.12);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--line);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none;
+  }
 }

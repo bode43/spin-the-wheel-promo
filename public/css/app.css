@@ -1,20 +1,17 @@
+@import url('./tokens.css');
+
 :root {
-  --bg: #07030f;
   --bg2: #0c0820;
   --violet: #8b5cff;
   --blue: #38bdf8;
   --green: #34f5c5;
   --pink: #f472ff;
-  --text: #f4f1ff;
   --muted: rgba(244, 241, 255, 0.62);
-  --card: rgba(18, 10, 40, 0.55);
-  --stroke: rgba(139, 92, 255, 0.35);
+  --stroke: var(--line);
   --glow-v: rgba(139, 92, 255, 0.55);
   --glow-b: rgba(56, 189, 248, 0.45);
   --glow-g: rgba(52, 245, 197, 0.4);
-  --radius: 20px;
-  --font: 'Outfit', system-ui, sans-serif;
-  --font-display: 'Syne', var(--font);
+  --radius: var(--radius-lg);
 }
 
 *,
@@ -313,6 +310,8 @@ body {
   width: min(78vw, 300px);
   height: min(78vw, 300px);
   margin: 0.75rem auto 0;
+  container-type: size;
+  container-name: wheel;
 }
 
 .wheel {
@@ -341,15 +340,22 @@ body {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: conic-gradient(
-    from -90deg,
-    #5b2eea 0deg 60deg,
-    #2563eb 60deg 120deg,
-    #06b6d4 120deg 180deg,
-    #10b981 180deg 240deg,
-    #a855f7 240deg 300deg,
-    #f472b6 300deg 360deg
-  );
+  background:
+    repeating-conic-gradient(
+      from -90deg,
+      transparent 0deg 59.35deg,
+      rgba(255, 255, 255, 0.22) 59.35deg 59.65deg,
+      transparent 59.65deg 60deg
+    ),
+    conic-gradient(
+      from -90deg,
+      #5b2eea 0deg 60deg,
+      #2563eb 60deg 120deg,
+      #06b6d4 120deg 180deg,
+      #10b981 180deg 240deg,
+      #a855f7 240deg 300deg,
+      #f472b6 300deg 360deg
+    );
   position: relative;
 }
 
@@ -374,42 +380,89 @@ body {
 }
 
 /* Each li is a “spoke”: bottom-center pinned to wheel center, then rotated per segment */
-.wheel-labels li {
+.wheel-labels li.wheel-spoke {
   position: absolute;
   left: 50%;
   bottom: 50%;
-  width: 44%;
-  height: 44%;
-  margin-left: -22%;
+  width: 46%;
+  height: 46%;
+  margin-left: -23%;
   transform-origin: 50% 100%;
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding-top: 1%;
-  padding-left: 2%;
-  padding-right: 2%;
+  padding-top: 2%;
+  padding-left: 3%;
+  padding-right: 3%;
   text-align: center;
-  font-size: clamp(0.42rem, 2.05vw, 0.58rem);
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  line-height: 1.18;
-  color: rgba(255, 255, 255, 0.96);
-  text-shadow: 0 0 8px rgba(0, 0, 0, 0.65);
   box-sizing: border-box;
+  font-family: var(--font);
+  /* Fallback when container queries are unavailable */
+  font-size: clamp(0.52rem, 2.15vw, 0.82rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.22;
+  color: #fff;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  /* Legibility on both dark and bright wedge colors */
+  text-shadow:
+    0 0 1px rgba(0, 0, 0, 0.9),
+    0 1px 2px rgba(0, 0, 0, 0.85),
+    0 0 10px rgba(0, 0, 0, 0.55);
 }
 
-.wheel-labels li span {
+.wheel-label-inner {
   display: block;
   max-width: 100%;
-  hyphens: auto;
+  hyphens: manual;
   overflow-wrap: break-word;
   word-break: break-word;
 }
 
-.wheel-labels li span .wheel-label-sub {
-  font-weight: 500;
-  font-size: 0.92em;
-  opacity: 0.92;
+.wheel-label-line {
+  display: block;
+}
+
+.wheel-label-sub {
+  display: block;
+  margin-top: 0.08em;
+  font-weight: 600;
+  font-size: 0.78em;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 250, 235, 0.95);
+  text-shadow:
+    0 0 1px rgba(0, 0, 0, 0.95),
+    0 1px 3px rgba(0, 0, 0, 0.8),
+    0 0 12px rgba(251, 191, 36, 0.35);
+}
+
+.wheel-spoke.is-grand {
+  font-size: clamp(0.48rem, 2vw, 0.74rem);
+  letter-spacing: 0.025em;
+}
+
+@supports (font-size: 1cqw) {
+  .wheel-labels li.wheel-spoke {
+    font-size: clamp(0.52rem, 5.4cqw, 0.82rem);
+  }
+
+  .wheel-spoke.is-grand {
+    font-size: clamp(0.48rem, 4.9cqw, 0.74rem);
+  }
+}
+
+.wheel-spoke.is-grand .wheel-label-line {
+  text-transform: none;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.wheel-spoke.is-grand .wheel-label-sub {
+  font-size: 0.72em;
+  letter-spacing: 0.14em;
 }
 
 .suspense {
@@ -561,7 +614,8 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .bg-aurora,
   .btn-spin,
-  .urgency-dot {
+  .urgency-dot,
+  .modal {
     animation: none;
   }
 }

@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const helmet = require('helmet');
@@ -24,7 +25,19 @@ app.set('trust proxy', trustProxy ? 1 : false);
 
 app.use(
   helmet({
-    contentSecurityPolicy: false,
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", 'https://fonts.googleapis.com'],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        imgSrc: ["'self'", 'data:', 'blob:'],
+        scriptSrc: ["'self'"],
+        connectSrc: ["'self'"],
+        baseUri: ["'self'"],
+        formAction: ["'self'"],
+        frameAncestors: ["'none'"],
+      },
+    },
     crossOriginEmbedderPolicy: false,
   })
 );
@@ -48,6 +61,18 @@ app.use('/api', spinRouter);
 app.use('/api/admin', adminRouter);
 
 const publicDir = path.join(__dirname, '..', 'public');
+const indexPath = path.join(publicDir, 'index.html');
+
+app.get('/', (_req, res) => {
+  let html = fs.readFileSync(indexPath, 'utf8');
+  const hideFooter =
+    process.env.SHOW_ADMIN_FOOTER === '0' || process.env.SHOW_ADMIN_FOOTER === 'false';
+  if (hideFooter) {
+    html = html.replace(/\s*<footer class="foot">[\s\S]*?<\/footer>\s*/i, '');
+  }
+  res.type('html').send(html);
+});
+
 app.use(express.static(publicDir, { extensions: ['html'], maxAge: '1h' }));
 
 module.exports = app;
