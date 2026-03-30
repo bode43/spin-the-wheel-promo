@@ -13,7 +13,7 @@
     { lines: ['Free gift worth 800'] },
     { lines: ['Free gift worth 1,600'] },
     { lines: ['Free gift worth 2,400'] },
-    { lines: ['Grand prize: free order worth 8,000', '(Ultra rare)'] },
+    { lines: ['free order worth 8,000'] },
   ];
 
   let segmentLines = FALLBACK_SEGMENT_DISPLAY.map((s) => s.lines);
