@@ -1,6 +1,11 @@
 {
   "version": 2,
-  "rewrites": [{ "source": "/(.*)", "destination": "/api" }],
+  "rewrites": [
+    {
+      "source": "/((?!_vercel/).*)",
+      "destination": "/api"
+    }
+  ],
   "functions": {
     "api/index.js": {
       "memory": 1024,

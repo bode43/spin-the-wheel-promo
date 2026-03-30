@@ -32,7 +32,12 @@ app.use(
         fontSrc: ["'self'", 'https://fonts.gstatic.com'],
         imgSrc: ["'self'", 'data:', 'blob:'],
         scriptSrc: ["'self'"],
-        connectSrc: ["'self'"],
+        connectSrc: [
+          "'self'",
+          'https://vitals.vercel-insights.com',
+          'https://va.vercel-scripts.com',
+          'https://vercel.live',
+        ],
         baseUri: ["'self'"],
         formAction: ["'self'"],
         frameAncestors: ["'none'"],
