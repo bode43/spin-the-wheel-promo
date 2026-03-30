@@ -82,53 +82,6 @@ body {
   padding: 1.25rem 1.25rem 2.5rem;
 }
 
-.top-bar {
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-  margin-bottom: 1.25rem;
-}
-
-.brand {
-  margin: 0;
-  font-family: var(--font-display);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-size: 0.72rem;
-  color: var(--muted);
-}
-
-.urgency {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  color: var(--text);
-  text-shadow: 0 0 12px var(--glow-g);
-}
-
-.urgency-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 12px var(--green);
-  animation: pulse 1.4s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.6;
-    transform: scale(0.85);
-  }
-}
-
 .hero {
   margin-bottom: 1.5rem;
 }
@@ -614,7 +567,6 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .bg-aurora,
   .btn-spin,
-  .urgency-dot,
   .modal {
     animation: none;
   }

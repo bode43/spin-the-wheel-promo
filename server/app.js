@@ -6,7 +6,6 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
 const { connectMongo } = require('./db');
-const urgencyRouter = require('./routes/urgency');
 const spinRouter = require('./routes/spin');
 const adminRouter = require('./routes/admin');
 
@@ -61,7 +60,6 @@ app.use('/api', async (req, res, next) => {
   }
 });
 
-app.use('/api', urgencyRouter);
 app.use('/api', spinRouter);
 app.use('/api/admin', adminRouter);
 

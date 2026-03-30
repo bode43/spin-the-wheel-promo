@@ -16,11 +16,10 @@
     { lines: ['free order worth 8,000'] },
   ];
 
-  let segmentLines = FALLBACK_SEGMENT_DISPLAY.map((s) => s.lines);
+  const segmentLines = FALLBACK_SEGMENT_DISPLAY.map((s) => s.lines);
 
   const el = {
     mainShell: document.getElementById('mainShell'),
-    urgencyText: document.getElementById('urgencyText'),
     igUser: document.getElementById('igUser'),
     spinBtn: document.getElementById('spinBtn'),
     formError: document.getElementById('formError'),
@@ -36,8 +35,6 @@
   };
 
   let wheelRotation = 0;
-  let urgencySeconds = 0;
-  let urgencyRewards = 0;
   let modalFocusCleanup = null;
 
   function showError(msg) {
@@ -275,37 +272,6 @@
     }
   }
 
-  function applySegmentDisplay(raw) {
-    if (!Array.isArray(raw) || raw.length !== SEGMENTS) return;
-    const next = raw.map((entry) => {
-      if (entry && Array.isArray(entry.lines) && entry.lines.length) return entry.lines;
-      return [String(entry?.lines?.[0] ?? '')];
-    });
-    segmentLines = next;
-    buildLabels();
-  }
-
-  async function refreshUrgency() {
-    try {
-      const res = await fetch('/api/urgency');
-      const data = await res.json();
-      urgencySeconds = data.nextResetSeconds ?? 0;
-      urgencyRewards = data.rewardsLeftToday ?? 0;
-      applySegmentDisplay(data.segmentDisplay);
-      renderUrgency();
-    } catch {
-      el.urgencyText.textContent = 'Limited rewards available today.';
-    }
-  }
-
-  function renderUrgency() {
-    const h = Math.floor(urgencySeconds / 3600);
-    const m = Math.floor((urgencySeconds % 3600) / 60);
-    const s = urgencySeconds % 60;
-    const clock = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-    el.urgencyText.textContent = `Only ${urgencyRewards} rewards left today · Next reset in ${clock}`;
-  }
-
   async function onSpin() {
     clearError();
     const v = validateUsernameClient(el.igUser.value);
@@ -370,13 +336,6 @@
 
   buildLabels();
   closeModal();
-
-  refreshUrgency();
-  setInterval(() => {
-    if (urgencySeconds > 0) urgencySeconds -= 1;
-    renderUrgency();
-  }, 1000);
-  setInterval(refreshUrgency, 60000);
 
   el.igUser.addEventListener('input', clearError);
 })();
