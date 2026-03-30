@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<!-- Single-file build: same UI as /index.html; tries /api/spin then falls back to demo spin. -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#020617" />
+    <meta
+      name="description"
+      content="Spin the wheel for exclusive discounts and gifts. Enter your Instagram username — one spin per day."
+    />
+    <meta property="og:title" content="Spin the Wheel — Exclusive Rewards" />
+    <meta property="og:description" content="One spin per day. Real rewards — unlock your code and DM us on Instagram." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <title>Spin the Wheel — Exclusive Rewards</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+:root {
+  --bg: #030712;
+  --bg2: #0a0f1c;
+  --text: #f8fafc;
+  --muted: rgba(226, 232, 240, 0.72);
+  --accent: #22d3ee;
+  --accent2: #a855f7;
+  --gold: #eab308;
+  --gold-light: #fde047;
+  --line: rgba(148, 163, 184, 0.25);
+  --err: #fb7185;
+  --ok: #34d399;
+  --font: 'Montserrat', system-ui, sans-serif;
+  --font-display: 'Bebas Neue', Impact, system-ui, sans-serif;
+  --radius: 14px;
+  --radius-lg: 22px;
+  --card: rgba(15, 23, 42, 0.72);
+}
+
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+button:focus:not(:focus-visible),
+input:focus:not(:focus-visible) {
+  outline: none;
+}
+
+:root {
+  --neon-purple: #a855f7;
+  --neon-cyan: #22d3ee;
+  --neon-pink: #e879f9;
+  --chrome: linear-gradient(180deg, #fefce8 0%, #eab308 35%, #854d0e 100%);
+  --wheel-rim: rgba(34, 211, 238, 0.55);
+  --glow-cyan: rgba(34, 211, 238, 0.55);
+  --glow-purple: rgba(168, 85, 247, 0.5);
+  --radius: var(--radius-lg);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  font-family: var(--font);
+  font-weight: 600;
+  color: var(--text);
+  background: radial-gradient(ellipse 140% 100% at 50% -30%, #1e1b4b 0%, #0f172a 35%, #020617 70%, #000 100%);
+  overflow-x: hidden;
+}
+
+/* —— Background: rays + canvas particles + noise —— */
+.lux-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.lux-rays {
+  position: absolute;
+  inset: -50%;
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    transparent 0deg,
+    rgba(168, 85, 247, 0.07) 25deg,
+    transparent 55deg,
+    rgba(34, 211, 238, 0.08) 95deg,
+    transparent 130deg,
+    rgba(232, 121, 249, 0.06) 200deg,
+    transparent 240deg,
+    rgba(34, 211, 238, 0.07) 300deg,
+    transparent 360deg
+  );
+  animation: rays-spin 120s linear infinite;
+}
+
+@keyframes rays-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.lux-particles {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.55;
+}
+
+.lux-noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.shell {
+  position: relative;
+  z-index: 1;
+  max-width: 440px;
+  margin: 0 auto;
+  padding: clamp(1rem, 4vw, 1.5rem) clamp(1rem, 4vw, 1.35rem) 2.5rem;
+}
+
+.hero {
+  margin-bottom: 1.35rem;
+  text-align: center;
+}
+
+.title {
+  margin: 0 0 0.4rem;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.75rem, 12vw, 3.75rem);
+  line-height: 0.95;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: linear-gradient(180deg, #fff 0%, #e2e8f0 40%, #94a3b8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 28px rgba(34, 211, 238, 0.35)) drop-shadow(0 0 40px rgba(168, 85, 247, 0.25));
+}
+
+.subtitle {
+  margin: 0 auto;
+  max-width: 32ch;
+  color: var(--muted);
+  font-size: clamp(0.82rem, 2.8vw, 0.95rem);
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+}
+
+.card-glow {
+  background: var(--card);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: var(--radius);
+  backdrop-filter: blur(16px);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+    0 24px 60px rgba(0, 0, 0, 0.55),
+    0 0 80px rgba(168, 85, 247, 0.08);
+}
+
+.entry {
+  padding: 1.35rem 1.2rem 1.45rem;
+  margin-bottom: 1.5rem;
+}
+
+.field-label {
+  display: block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+  margin-bottom: 0.55rem;
+  font-weight: 700;
+}
+
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(2, 6, 23, 0.65);
+  border: 1px solid rgba(34, 211, 238, 0.22);
+  border-radius: 16px;
+  padding: 0.1rem 0.75rem;
+  box-shadow:
+    0 0 0 1px rgba(168, 85, 247, 0.12) inset,
+    0 0 24px rgba(34, 211, 238, 0.06) inset;
+}
+
+.at-prefix {
+  color: var(--neon-cyan);
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.field-row input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 1.02rem;
+  font-weight: 600;
+  padding: 0.8rem 0;
+  outline: none;
+  font-family: var(--font);
+}
+
+.field-row input::placeholder {
+  color: rgba(226, 232, 240, 0.28);
+}
+
+.hint {
+  margin: 0.55rem 0 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.error {
+  margin: 0.65rem 0 0;
+  font-size: 0.84rem;
+  color: #fda4af;
+  font-weight: 600;
+  text-shadow: 0 0 14px rgba(251, 113, 133, 0.4);
+}
+
+/* —— Spin CTA: purple → cyan + pulse glow —— */
+.btn-spin {
+  position: relative;
+  width: 100%;
+  margin-top: 1.15rem;
+  padding: 1.05rem 1.35rem;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #0f172a;
+  background: linear-gradient(105deg, #7c3aed 0%, #a855f7 25%, #06b6d4 75%, #22d3ee 100%);
+  background-size: 200% 100%;
+  animation: sheen 3.5s linear infinite, btn-pulse-glow 2.2s ease-in-out infinite;
+  overflow: hidden;
+  transition: transform 0.2s ease, filter 0.2s ease;
+  box-shadow:
+    0 0 20px rgba(168, 85, 247, 0.55),
+    0 0 36px rgba(34, 211, 238, 0.35),
+    0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes sheen {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes btn-pulse-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 22px rgba(168, 85, 247, 0.5),
+      0 0 38px rgba(34, 211, 238, 0.3),
+      0 4px 20px rgba(0, 0, 0, 0.4);
+    filter: brightness(1);
+  }
+  50% {
+    box-shadow:
+      0 0 32px rgba(168, 85, 247, 0.75),
+      0 0 52px rgba(34, 211, 238, 0.5),
+      0 4px 24px rgba(0, 0, 0, 0.45);
+    filter: brightness(1.08);
+  }
+}
+
+.btn-spin:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.02);
+}
+
+.btn-spin:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn-spin:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  animation: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.btn-spin__glow {
+  position: absolute;
+  inset: -50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.4), transparent 50%);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.btn-spin__label {
+  position: relative;
+  z-index: 1;
+}
+
+.wheel-section {
+  text-align: center;
+}
+
+.wheel-frame {
+  position: relative;
+  padding: 2.25rem 1rem 2rem;
+  margin: 0 auto;
+}
+
+/* Gold / chrome pointer */
+.wheel-pointer {
+  position: absolute;
+  top: 0.35rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 8;
+  width: clamp(36px, 11vw, 48px);
+  height: clamp(52px, 15vw, 68px);
+  filter: drop-shadow(0 0 12px rgba(234, 179, 8, 0.65)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
+  pointer-events: none;
+}
+
+.wheel-pointer__svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.wheel-stage {
+  perspective: 900px;
+  margin: 0 auto;
+}
+
+.wheel-wrap {
+  position: relative;
+  width: min(82vw, 308px);
+  height: min(82vw, 308px);
+  margin: 0.5rem auto 0;
+  container-type: size;
+  container-name: wheel;
+  transform-style: preserve-3d;
+  border-radius: 50%;
+  animation: wheel-neon-pulse-wrap 4s ease-in-out infinite;
+}
+
+@keyframes wheel-neon-pulse-wrap {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 20px rgba(34, 211, 238, 0.4)) drop-shadow(0 0 36px rgba(168, 85, 247, 0.25));
+  }
+  50% {
+    filter: drop-shadow(0 0 28px rgba(34, 211, 238, 0.55)) drop-shadow(0 0 48px rgba(168, 85, 247, 0.38));
+  }
+}
+
+.wheel {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  position: relative;
+  transform: rotateX(8deg);
+  transform-origin: center center;
+  transform-style: preserve-3d;
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.12),
+    0 0 0 4px rgba(34, 211, 238, 0.35),
+    0 0 0 7px rgba(168, 85, 247, 0.2),
+    0 12px 32px rgba(0, 0, 0, 0.65),
+    inset 0 0 50px rgba(0, 0, 0, 0.5);
+}
+
+.wheel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, rgba(255, 255, 255, 0.2), transparent 45%);
+  pointer-events: none;
+  z-index: 3;
+}
+
+.wheel-disk {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background:
+    repeating-conic-gradient(
+      from -90deg,
+      transparent 0deg 59.15deg,
+      rgba(255, 255, 255, 0.75) 59.15deg 59.4deg,
+      rgba(15, 23, 42, 0.95) 59.4deg 59.85deg,
+      transparent 59.85deg 60deg
+    ),
+    conic-gradient(
+      from -90deg,
+      #4c1d95 0deg 60deg,
+      #1d4ed8 60deg 120deg,
+      #0e7490 120deg 180deg,
+      #047857 180deg 240deg,
+      #6d28d9 240deg 300deg,
+      #be185d 300deg 360deg
+    );
+  position: relative;
+}
+
+.wheel-hub {
+  position: absolute;
+  inset: 34%;
+  border-radius: 50%;
+  z-index: 4;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.55), transparent 38%),
+    radial-gradient(circle at 50% 100%, rgba(0, 0, 0, 0.45), transparent 55%),
+    linear-gradient(165deg, #57534e 0%, #292524 40%, #0c0a09 100%);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  box-shadow:
+    0 0 0 1px rgba(253, 224, 71, 0.45),
+    0 0 20px rgba(234, 179, 8, 0.35),
+    0 4px 12px rgba(0, 0, 0, 0.6),
+    inset 0 2px 8px rgba(255, 255, 255, 0.25),
+    inset 0 -6px 16px rgba(0, 0, 0, 0.55);
+}
+
+.wheel-hub::after {
+  content: '';
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.35), transparent 50%);
+  pointer-events: none;
+}
+
+.wheel-labels {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.wheel-labels li.wheel-spoke {
+  position: absolute;
+  left: 50%;
+  bottom: 50%;
+  width: 46%;
+  height: 46%;
+  margin-left: -23%;
+  transform-origin: 50% 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 3%;
+  padding-left: 4%;
+  padding-right: 4%;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.wheel-label-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.12em;
+  max-width: 100%;
+  transform-origin: center center;
+}
+
+.wheel-label-ico {
+  font-size: clamp(0.95rem, 4.2cqw, 1.35rem);
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.85));
+}
+
+.wheel-label-text {
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: clamp(0.48rem, 4.8cqw, 0.72rem);
+  letter-spacing: 0.03em;
+  line-height: 1.15;
+  color: #fff;
+  text-transform: none;
+  text-shadow:
+    0 0 2px rgba(0, 0, 0, 1),
+    0 2px 4px rgba(0, 0, 0, 0.9),
+    0 0 12px rgba(0, 0, 0, 0.6);
+}
+
+.wheel-spoke.is-grand .wheel-label-text {
+  font-size: clamp(0.44rem, 4.2cqw, 0.66rem);
+  font-weight: 800;
+}
+
+@supports not (font-size: 1cqw) {
+  .wheel-label-ico {
+    font-size: clamp(0.95rem, 3.8vw, 1.35rem);
+  }
+
+  .wheel-label-text {
+    font-size: clamp(0.48rem, 2.9vw, 0.72rem);
+  }
+
+  .wheel-spoke.is-grand .wheel-label-text {
+    font-size: clamp(0.44rem, 2.6vw, 0.66rem);
+  }
+}
+
+.suspense {
+  min-height: 1.5rem;
+  margin: 1rem 0 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 16px var(--glow-cyan);
+  letter-spacing: 0.04em;
+}
+
+.foot {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.admin-link {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(226, 232, 240, 0.22);
+  text-decoration: none;
+  letter-spacing: 0.08em;
+}
+
+.admin-link:hover {
+  color: var(--muted);
+}
+
+/* Confetti layer */
+.confetti-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.confetti-bit {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  top: 50%;
+  left: 50%;
+  border-radius: 1px;
+  opacity: 0;
+  animation: confetti-burst 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes confetti-burst {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(0deg) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(
+        calc(-50% + var(--dx, 0px)),
+        calc(-50% + var(--dy, 120px))
+      )
+      rotate(var(--rot, 360deg)) scale(0.3);
+  }
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: rgba(2, 6, 23, 0.78);
+  backdrop-filter: blur(12px);
+}
+
+.modal {
+  width: min(100%, 400px);
+  padding: 1.65rem 1.4rem 1.5rem;
+  text-align: center;
+  animation: modalIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  border: 1px solid rgba(34, 211, 238, 0.2);
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.modal-kicker {
+  margin: 0;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+}
+
+.modal-reward {
+  margin: 0.55rem 0 1rem;
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 1.2rem;
+  line-height: 1.35;
+  color: var(--text);
+  text-shadow: 0 0 24px var(--glow-purple);
+}
+
+.coupon-block {
+  background: rgba(2, 6, 23, 0.65);
+  border-radius: 16px;
+  padding: 0.95rem 0.8rem;
+  border: 1px solid rgba(234, 179, 8, 0.28);
+  margin-bottom: 1rem;
+  box-shadow: 0 0 24px rgba(234, 179, 8, 0.08) inset;
+}
+
+.coupon-label {
+  margin: 0 0 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+}
+
+.coupon-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.coupon-code {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: #fde047;
+  text-shadow: 0 0 14px rgba(234, 179, 8, 0.45);
+  word-break: break-all;
+}
+
+.btn-copy {
+  border: 1px solid rgba(168, 85, 247, 0.45);
+  background: rgba(168, 85, 247, 0.12);
+  color: var(--text);
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  font-family: var(--font);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.btn-copy:hover {
+  background: rgba(168, 85, 247, 0.22);
+  box-shadow: 0 0 20px var(--glow-purple);
+}
+
+.modal-msg {
+  margin: 0 0 0.5rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: rgba(248, 250, 252, 0.92);
+}
+
+.modal-urgent {
+  margin: 0 0 1rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #fb7185;
+  text-shadow: 0 0 14px rgba(251, 113, 133, 0.35);
+  letter-spacing: 0.04em;
+}
+
+.btn-close {
+  width: 100%;
+  padding: 0.85rem;
+  border-radius: 14px;
+  border: none;
+  font-family: var(--font);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.82rem;
+  cursor: pointer;
+  color: #0f172a;
+  background: linear-gradient(90deg, #a855f7, #22d3ee);
+  box-shadow: 0 0 24px rgba(34, 211, 238, 0.25);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lux-rays,
+  .btn-spin,
+  .wheel-wrap,
+  .modal,
+  .confetti-bit {
+    animation: none !important;
+  }
+
+  .wheel-wrap {
+    filter: drop-shadow(0 0 16px rgba(34, 211, 238, 0.35));
+  }
+}
+
+</style>
+  </head>
+  <body>
+    <div class="lux-bg" aria-hidden="true">
+      <div class="lux-rays"></div>
+      <canvas id="bgParticles" class="lux-particles" width="400" height="800"></canvas>
+      <div class="lux-noise"></div>
+    </div>
+
+    <main class="shell" id="mainShell">
+      <section class="hero">
+        <h1 class="title">Spin the Wheel</h1>
+        <p class="subtitle">
+          One spin per day. Enter your Instagram username to play — rewards are real.
+        </p>
+      </section>
+
+      <section class="entry card-glow" aria-label="Instagram username">
+        <label class="field-label" for="igUser">Instagram username</label>
+        <div class="field-row">
+          <span class="at-prefix" aria-hidden="true">@</span>
+          <input
+            id="igUser"
+            name="instagram"
+            type="text"
+            inputmode="text"
+            autocomplete="username"
+            maxlength="30"
+            placeholder="your.handle"
+            autocapitalize="none"
+            spellcheck="false"
+          />
+        </div>
+        <p class="hint" id="fieldHint">Use the same handle you’ll DM from.</p>
+        <p class="error" id="formError" role="alert" hidden></p>
+        <button type="button" class="btn-spin" id="spinBtn">
+          <span class="btn-spin__glow"></span>
+          <span class="btn-spin__label">Spin</span>
+        </button>
+      </section>
+
+      <section class="wheel-section" aria-label="Prize wheel">
+        <div class="wheel-frame card-glow">
+          <div class="wheel-pointer" aria-hidden="true">
+            <svg class="wheel-pointer__svg" viewBox="0 0 56 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="ptrGold" x1="28" y1="0" x2="28" y2="72" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#FFFBEB" />
+                  <stop offset="0.35" stop-color="#FDE047" />
+                  <stop offset="0.55" stop-color="#CA8A04" />
+                  <stop offset="1" stop-color="#713F12" />
+                </linearGradient>
+                <linearGradient id="ptrChrome" x1="0" y1="0" x2="56" y2="0" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#94A3B8" />
+                  <stop offset="0.5" stop-color="#F8FAFC" />
+                  <stop offset="1" stop-color="#64748B" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M28 4 L52 58 Q28 72 28 72 Q28 72 4 58 Z"
+                fill="url(#ptrGold)"
+                stroke="url(#ptrChrome)"
+                stroke-width="2.5"
+              />
+              <path d="M28 14 L42 52 Q28 60 28 60 Q28 60 14 52 Z" fill="rgba(255,255,255,0.25)" />
+            </svg>
+          </div>
+          <div class="wheel-stage">
+            <div class="wheel-wrap">
+              <div class="wheel" id="wheel" aria-hidden="true">
+                <div class="wheel-disk" aria-hidden="true"></div>
+                <ul class="wheel-labels" id="wheelLabels" aria-hidden="true"></ul>
+                <div class="wheel-hub" aria-hidden="true"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="suspense" id="suspenseText" aria-live="polite"></p>
+      </section>
+
+      <footer class="foot">
+        <a class="admin-link" href="/admin.html">Admin</a>
+      </footer>
+    </main>
+
+    <div class="confetti-layer" id="confettiLayer" aria-hidden="true"></div>
+
+    <div class="modal-backdrop" id="modalBackdrop" hidden>
+      <div
+        class="modal card-glow"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modalTitle"
+        id="resultModal"
+      >
+        <p class="modal-kicker" id="modalTitle">You unlocked</p>
+        <p class="modal-reward" id="modalReward"></p>
+        <div class="coupon-block">
+          <p class="coupon-label">Your code</p>
+          <div class="coupon-row">
+            <code class="coupon-code" id="modalCoupon"></code>
+            <button type="button" class="btn-copy" id="copyBtn">Copy</button>
+          </div>
+        </div>
+        <p class="modal-msg">
+          Take a screenshot now and send it via Instagram DM before the code expires!
+        </p>
+        <p class="modal-urgent">Code expires soon</p>
+        <button type="button" class="btn-close" id="modalClose">Got it</button>
+      </div>
+    </div>
+<script>
+(function () {
+  'use strict';
+
+  const GRAND_INDEX = 5;
+  const SEGMENTS = 6;
+  const SEG_DEG = 360 / SEGMENTS;
+  const WHEEL_TILT = 'rotateX(8deg)';
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /** Icons + copy (aligned with server/constants SEGMENTS). */
+  const SEGMENT_META = [
+    { icon: '⚡', text: '30% Discount' },
+    { icon: '⚡', text: '40% Discount' },
+    { icon: '🎁', text: 'Free Gift Worth 800' },
+    { icon: '🎁', text: 'Free Gift Worth 1,600' },
+    { icon: '🎁', text: 'Free Gift Worth 2,400' },
+    { icon: '🏆', text: 'Free Order Worth 8,000' },
+  ];
+
+  const el = {
+    mainShell: document.getElementById('mainShell'),
+    igUser: document.getElementById('igUser'),
+    spinBtn: document.getElementById('spinBtn'),
+    formError: document.getElementById('formError'),
+    wheel: document.getElementById('wheel'),
+    wheelLabels: document.getElementById('wheelLabels'),
+    suspenseText: document.getElementById('suspenseText'),
+    modalBackdrop: document.getElementById('modalBackdrop'),
+    resultModal: document.getElementById('resultModal'),
+    modalReward: document.getElementById('modalReward'),
+    modalCoupon: document.getElementById('modalCoupon'),
+    copyBtn: document.getElementById('copyBtn'),
+    modalClose: document.getElementById('modalClose'),
+    confettiLayer: document.getElementById('confettiLayer'),
+    particles: document.getElementById('bgParticles'),
+  };
+
+  let wheelRotation = 0;
+  let modalFocusCleanup = null;
+
+  function setWheelTransform(deg) {
+    el.wheel.style.transform = `${WHEEL_TILT} rotate(${deg}deg)`;
+  }
+
+  function showError(msg) {
+    el.formError.textContent = msg;
+    el.formError.hidden = false;
+  }
+
+  function clearError() {
+    el.formError.hidden = true;
+    el.formError.textContent = '';
+  }
+
+  function validateUsernameClient(raw) {
+    if (raw == null || typeof raw !== 'string') return { ok: false, error: 'Enter your Instagram username.' };
+    let u = raw.trim();
+    if (u.startsWith('@')) u = u.slice(1);
+    u = u.toLowerCase();
+    if (u.length < 1 || u.length > 30) return { ok: false, error: 'Username must be 1–30 characters.' };
+    if (!/^[a-z0-9._]+$/.test(u)) {
+      return { ok: false, error: 'Use only letters, numbers, periods, and underscores.' };
+    }
+    if (u.startsWith('.') || u.endsWith('.') || u.includes('..')) {
+      return { ok: false, error: 'Invalid username format.' };
+    }
+    return { ok: true, username: u };
+  }
+
+  function buildWheelLabel(span, meta) {
+    span.innerHTML = '';
+    const ico = document.createElement('span');
+    ico.className = 'wheel-label-ico';
+    ico.setAttribute('aria-hidden', 'true');
+    ico.textContent = meta.icon;
+    const tx = document.createElement('span');
+    tx.className = 'wheel-label-text';
+    tx.textContent = meta.text;
+    span.appendChild(ico);
+    span.appendChild(tx);
+  }
+
+  function buildLabels() {
+    el.wheelLabels.innerHTML = '';
+    for (let i = 0; i < SEGMENTS; i += 1) {
+      const li = document.createElement('li');
+      li.className = 'wheel-spoke';
+      if (i === GRAND_INDEX) li.classList.add('is-grand');
+      li.style.transform = `rotate(${i * SEG_DEG}deg)`;
+      const span = document.createElement('span');
+      span.className = 'wheel-label-inner';
+      buildWheelLabel(span, SEGMENT_META[i] || { icon: '✦', text: '' });
+      span.style.transform = `rotate(${-i * SEG_DEG}deg)`;
+      li.appendChild(span);
+      el.wheelLabels.appendChild(li);
+    }
+  }
+
+  function easeOutCubic(t) {
+    return 1 - (1 - t) ** 3;
+  }
+
+  function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
+  }
+
+  function animateRotation(from, to, durationMs, easing, onDone) {
+    if (prefersReducedMotion || durationMs <= 0) {
+      setWheelTransform(to);
+      onDone(to);
+      return;
+    }
+    const t0 = performance.now();
+    function frame(now) {
+      const u = Math.min(1, (now - t0) / durationMs);
+      const e = easing(u);
+      const ang = from + (to - from) * e;
+      setWheelTransform(ang);
+      if (u < 1) requestAnimationFrame(frame);
+      else onDone(ang);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function rotationModForIndex(index) {
+    return (330 - index * SEG_DEG + 360) % 360;
+  }
+
+  function deltaToLandIndex(index, fullSpins, jitterFrac) {
+    const j = (jitterFrac || 0) * SEG_DEG * 0.22;
+    return fullSpins * 360 + (360 - index * SEG_DEG - SEG_DEG / 2 + j);
+  }
+
+  function extendRotationToIndex(current, targetIndex, extraFullSpins, jitterFrac) {
+    const want = rotationModForIndex(targetIndex);
+    const cur = ((current % 360) + 360) % 360;
+    let delta = (want - cur + 360) % 360;
+    if (delta < 10) delta += 360;
+    const j = (jitterFrac || 0) * SEG_DEG * 0.15;
+    return current + extraFullSpins * 360 + delta + j;
+  }
+
+  function spinTimings() {
+    if (prefersReducedMotion) {
+      return { near: 0, final: 0, grand: 0, settleDelay: 0, openDelay: 0 };
+    }
+    return { near: 4200, final: 3400, grand: 6500, settleDelay: 400, openDelay: 650 };
+  }
+
+  function triggerConfetti() {
+    if (prefersReducedMotion || !el.confettiLayer) return;
+    const layer = el.confettiLayer;
+    const colors = ['#fde047', '#a855f7', '#22d3ee', '#f472b6', '#f8fafc', '#34d399'];
+    const n = 56;
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight * 0.42;
+    for (let i = 0; i < n; i += 1) {
+      const bit = document.createElement('span');
+      bit.className = 'confetti-bit';
+      bit.style.backgroundColor = colors[i % colors.length];
+      const angle = (Math.PI * 2 * i) / n + Math.random() * 0.5;
+      const dist = 80 + Math.random() * 220;
+      const dx = Math.cos(angle) * dist;
+      const dy = Math.sin(angle) * dist * 0.85 + 40;
+      const rot = (Math.random() - 0.5) * 720;
+      bit.style.left = `${cx}px`;
+      bit.style.top = `${cy}px`;
+      bit.style.setProperty('--dx', `${dx}px`);
+      bit.style.setProperty('--dy', `${dy}px`);
+      bit.style.setProperty('--rot', `${rot}deg`);
+      if (Math.random() > 0.5) bit.style.borderRadius = '50%';
+      layer.appendChild(bit);
+      setTimeout(() => bit.remove(), 1200);
+    }
+  }
+
+  function runSpinAnimation(winIndex, onComplete) {
+    const start = wheelRotation;
+    const jitter = Math.random() - 0.5;
+    const t = spinTimings();
+
+    const finish = () => {
+      triggerConfetti();
+      onComplete();
+    };
+
+    const doNearMiss = winIndex !== GRAND_INDEX;
+    if (doNearMiss) {
+      const nearEnd = start + deltaToLandIndex(GRAND_INDEX, 4, jitter * 0.5);
+      el.suspenseText.textContent = 'The wheel chooses…';
+      animateRotation(start, nearEnd, t.near, easeInOutCubic, (r1) => {
+        el.suspenseText.textContent = 'Almost there…';
+        const finalTarget = extendRotationToIndex(r1, winIndex, 3, jitter);
+        animateRotation(r1, finalTarget, t.final, easeOutCubic, (r2) => {
+          wheelRotation = r2;
+          el.suspenseText.textContent = '';
+          finish();
+        });
+      });
+    } else {
+      el.suspenseText.textContent = 'Legendary pull incoming…';
+      const finalTarget = start + deltaToLandIndex(winIndex, 7, jitter);
+      animateRotation(start, finalTarget, t.grand, easeOutCubic, (r2) => {
+        wheelRotation = r2;
+        el.suspenseText.textContent = '';
+        finish();
+      });
+    }
+  }
+
+  async function simpleFingerprint() {
+    try {
+      const data = [
+        navigator.userAgent || '',
+        navigator.language || '',
+        String(screen.width),
+        String(screen.height),
+        String(screen.colorDepth || 0),
+        String(new Date().getTimezoneOffset()),
+      ].join('|');
+      const enc = new TextEncoder().encode(data);
+      const buf = await crypto.subtle.digest('SHA-256', enc);
+      const hex = Array.from(new Uint8Array(buf))
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('');
+      return hex.slice(0, 48);
+    } catch {
+      return '';
+    }
+  }
+
+  async function postSpin(username, fingerprint) {
+    if (typeof fetch === 'function') {
+      try {
+        const res = await fetch('/api/spin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ username, fingerprint }),
+        });
+        let data = {};
+        try {
+          data = await res.json();
+        } catch {
+          data = {};
+        }
+        if (res.ok) return data;
+      } catch {
+        /* fall through to demo */
+      }
+    }
+    const labels = ['30% Discount','40% Discount','Free Gift Worth 800','Free Gift Worth 1,600','Free Gift Worth 2,400','Free Order Worth 8,000'];
+    const idx = Math.floor(Math.random() * 6);
+    return { segmentIndex: idx, rewardLabel: labels[idx], coupon: 'DEMO-' + Math.random().toString(36).slice(2, 10).toUpperCase() };
+  }
+
+  function getFocusable(root) {
+    const sel = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    return Array.from(root.querySelectorAll(sel)).filter((node) => {
+      if (node.disabled) return false;
+      if (node.getAttribute('aria-hidden') === 'true') return false;
+      return true;
+    });
+  }
+
+  function openModal(rewardLabel, coupon) {
+    el.modalReward.textContent = rewardLabel;
+    el.modalCoupon.textContent = coupon;
+    el.modalBackdrop.hidden = false;
+    document.body.style.overflow = 'hidden';
+    if (el.mainShell) el.mainShell.setAttribute('inert', '');
+    const prevFocus = document.activeElement;
+    const modalRoot = el.resultModal;
+    const focusables = getFocusable(modalRoot);
+    const first = focusables[0] || el.modalClose;
+    requestAnimationFrame(() => {
+      first.focus();
+    });
+
+    function onKeydown(e) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeModal();
+        return;
+      }
+      if (e.key !== 'Tab' || focusables.length === 0) return;
+      const f0 = focusables[0];
+      const fLast = focusables[focusables.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === f0) {
+          e.preventDefault();
+          fLast.focus();
+        }
+      } else if (document.activeElement === fLast) {
+        e.preventDefault();
+        f0.focus();
+      }
+    }
+    document.addEventListener('keydown', onKeydown);
+    modalFocusCleanup = () => {
+      document.removeEventListener('keydown', onKeydown);
+      if (el.mainShell) el.mainShell.removeAttribute('inert');
+      if (prevFocus && typeof prevFocus.focus === 'function') prevFocus.focus();
+    };
+  }
+
+  function closeModal() {
+    el.modalBackdrop.hidden = true;
+    document.body.style.overflow = '';
+    if (modalFocusCleanup) {
+      const done = modalFocusCleanup;
+      modalFocusCleanup = null;
+      done();
+    } else if (el.mainShell) {
+      el.mainShell.removeAttribute('inert');
+    }
+  }
+
+  async function onSpin() {
+    clearError();
+    const v = validateUsernameClient(el.igUser.value);
+    if (!v.ok) {
+      showError(v.error);
+      return;
+    }
+
+    el.spinBtn.disabled = true;
+    el.spinBtn.querySelector('.btn-spin__label').textContent = 'Spinning…';
+
+    let payload;
+    try {
+      const fp = await simpleFingerprint();
+      payload = await postSpin(v.username, fp);
+    } catch (e) {
+      showError(e.message || 'Spin failed.');
+      el.spinBtn.disabled = false;
+      el.spinBtn.querySelector('.btn-spin__label').textContent = 'Spin';
+      return;
+    }
+
+    const serverIndex = payload.segmentIndex;
+    if (typeof serverIndex !== 'number' || serverIndex < 0 || serverIndex > 5) {
+      showError('Invalid response from server.');
+      el.spinBtn.disabled = false;
+      el.spinBtn.querySelector('.btn-spin__label').textContent = 'Spin';
+      return;
+    }
+
+    const t = spinTimings();
+    setTimeout(() => {
+      runSpinAnimation(serverIndex, () => {
+        setTimeout(() => {
+          openModal(payload.rewardLabel, payload.coupon);
+          el.spinBtn.disabled = false;
+          el.spinBtn.querySelector('.btn-spin__label').textContent = 'Spin';
+        }, t.openDelay);
+      });
+    }, t.settleDelay);
+  }
+
+  function initParticles() {
+    const canvas = el.particles;
+    if (!canvas || prefersReducedMotion) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const dots = [];
+    const N = 70;
+
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.floor(window.innerWidth * dpr);
+      canvas.height = Math.floor(window.innerHeight * dpr);
+      canvas.style.width = `${window.innerWidth}px`;
+      canvas.style.height = `${window.innerHeight}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    for (let i = 0; i < N; i += 1) {
+      dots.push({
+        x: Math.random(),
+        y: Math.random(),
+        r: 0.4 + Math.random() * 1.8,
+        vx: (Math.random() - 0.5) * 0.00012,
+        vy: (Math.random() - 0.5) * 0.00012 - 0.00004,
+        a: 0.15 + Math.random() * 0.55,
+      });
+    }
+
+    let last = performance.now();
+    function tick(now) {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const dt = Math.min(50, now - last);
+      last = now;
+      ctx.clearRect(0, 0, w, h);
+      for (const d of dots) {
+        d.x += d.vx * dt;
+        d.y += d.vy * dt;
+        if (d.x < 0 || d.x > 1) d.vx *= -1;
+        if (d.y < 0 || d.y > 1) d.vy *= -1;
+        d.x = Math.max(0, Math.min(1, d.x));
+        d.y = Math.max(0, Math.min(1, d.y));
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(226, 232, 240, ${d.a})`;
+        ctx.arc(d.x * w, d.y * h, d.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      requestAnimationFrame(tick);
+    }
+
+    resize();
+    window.addEventListener('resize', resize, { passive: true });
+    requestAnimationFrame(tick);
+  }
+
+  el.spinBtn.addEventListener('click', onSpin);
+
+  el.copyBtn.addEventListener('click', async () => {
+    const code = el.modalCoupon.textContent;
+    try {
+      await navigator.clipboard.writeText(code);
+      el.copyBtn.textContent = 'Copied';
+      setTimeout(() => {
+        el.copyBtn.textContent = 'Copy';
+      }, 2000);
+    } catch {
+      el.copyBtn.textContent = 'Select & copy';
+    }
+  });
+
+  el.modalClose.addEventListener('click', closeModal);
+  el.modalBackdrop.addEventListener('click', (ev) => {
+    if (ev.target === el.modalBackdrop) closeModal();
+  });
+
+  setWheelTransform(0);
+  buildLabels();
+  closeModal();
+  initParticles();
+
+  el.igUser.addEventListener('input', clearError);
+})();
+
+</script>
+  </body>
+</html>

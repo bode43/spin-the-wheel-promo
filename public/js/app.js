@@ -4,19 +4,19 @@
   const GRAND_INDEX = 5;
   const SEGMENTS = 6;
   const SEG_DEG = 360 / SEGMENTS;
+  const WHEEL_TILT = 'rotateX(8deg)';
 
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  const FALLBACK_SEGMENT_DISPLAY = [
-    { lines: ['30% discount'] },
-    { lines: ['40% discount'] },
-    { lines: ['Free gift worth 800'] },
-    { lines: ['Free gift worth 1,600'] },
-    { lines: ['Free gift worth 2,400'] },
-    { lines: ['free order worth 8,000'] },
+  /** Icons + copy (aligned with server/constants SEGMENTS). */
+  const SEGMENT_META = [
+    { icon: '⚡', text: '30% Discount' },
+    { icon: '⚡', text: '40% Discount' },
+    { icon: '🎁', text: 'Free Gift Worth 800' },
+    { icon: '🎁', text: 'Free Gift Worth 1,600' },
+    { icon: '🎁', text: 'Free Gift Worth 2,400' },
+    { icon: '🏆', text: 'Free Order Worth 8,000' },
   ];
-
-  const segmentLines = FALLBACK_SEGMENT_DISPLAY.map((s) => s.lines);
 
   const el = {
     mainShell: document.getElementById('mainShell'),
@@ -32,10 +32,16 @@
     modalCoupon: document.getElementById('modalCoupon'),
     copyBtn: document.getElementById('copyBtn'),
     modalClose: document.getElementById('modalClose'),
+    confettiLayer: document.getElementById('confettiLayer'),
+    particles: document.getElementById('bgParticles'),
   };
 
   let wheelRotation = 0;
   let modalFocusCleanup = null;
+
+  function setWheelTransform(deg) {
+    el.wheel.style.transform = `${WHEEL_TILT} rotate(${deg}deg)`;
+  }
 
   function showError(msg) {
     el.formError.textContent = msg;
@@ -62,15 +68,17 @@
     return { ok: true, username: u };
   }
 
-  function setWheelLabelLines(span, lines) {
-    const list = Array.isArray(lines) && lines.length ? lines : [String(lines)];
-    list.forEach((line, j) => {
-      if (j > 0) span.appendChild(document.createElement('br'));
-      const lineEl = document.createElement('span');
-      lineEl.className = j === 0 ? 'wheel-label-line' : 'wheel-label-sub';
-      lineEl.textContent = line;
-      span.appendChild(lineEl);
-    });
+  function buildWheelLabel(span, meta) {
+    span.innerHTML = '';
+    const ico = document.createElement('span');
+    ico.className = 'wheel-label-ico';
+    ico.setAttribute('aria-hidden', 'true');
+    ico.textContent = meta.icon;
+    const tx = document.createElement('span');
+    tx.className = 'wheel-label-text';
+    tx.textContent = meta.text;
+    span.appendChild(ico);
+    span.appendChild(tx);
   }
 
   function buildLabels() {
@@ -78,11 +86,11 @@
     for (let i = 0; i < SEGMENTS; i += 1) {
       const li = document.createElement('li');
       li.className = 'wheel-spoke';
-      if (i === 5) li.classList.add('is-grand');
+      if (i === GRAND_INDEX) li.classList.add('is-grand');
       li.style.transform = `rotate(${i * SEG_DEG}deg)`;
       const span = document.createElement('span');
       span.className = 'wheel-label-inner';
-      setWheelLabelLines(span, segmentLines[i] || []);
+      buildWheelLabel(span, SEGMENT_META[i] || { icon: '✦', text: '' });
       span.style.transform = `rotate(${-i * SEG_DEG}deg)`;
       li.appendChild(span);
       el.wheelLabels.appendChild(li);
@@ -99,7 +107,7 @@
 
   function animateRotation(from, to, durationMs, easing, onDone) {
     if (prefersReducedMotion || durationMs <= 0) {
-      el.wheel.style.transform = `rotate(${to}deg)`;
+      setWheelTransform(to);
       onDone(to);
       return;
     }
@@ -108,7 +116,7 @@
       const u = Math.min(1, (now - t0) / durationMs);
       const e = easing(u);
       const ang = from + (to - from) * e;
-      el.wheel.style.transform = `rotate(${ang}deg)`;
+      setWheelTransform(ang);
       if (u < 1) requestAnimationFrame(frame);
       else onDone(ang);
     }
@@ -140,10 +148,42 @@
     return { near: 4200, final: 3400, grand: 6500, settleDelay: 400, openDelay: 650 };
   }
 
+  function triggerConfetti() {
+    if (prefersReducedMotion || !el.confettiLayer) return;
+    const layer = el.confettiLayer;
+    const colors = ['#fde047', '#a855f7', '#22d3ee', '#f472b6', '#f8fafc', '#34d399'];
+    const n = 56;
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight * 0.42;
+    for (let i = 0; i < n; i += 1) {
+      const bit = document.createElement('span');
+      bit.className = 'confetti-bit';
+      bit.style.backgroundColor = colors[i % colors.length];
+      const angle = (Math.PI * 2 * i) / n + Math.random() * 0.5;
+      const dist = 80 + Math.random() * 220;
+      const dx = Math.cos(angle) * dist;
+      const dy = Math.sin(angle) * dist * 0.85 + 40;
+      const rot = (Math.random() - 0.5) * 720;
+      bit.style.left = `${cx}px`;
+      bit.style.top = `${cy}px`;
+      bit.style.setProperty('--dx', `${dx}px`);
+      bit.style.setProperty('--dy', `${dy}px`);
+      bit.style.setProperty('--rot', `${rot}deg`);
+      if (Math.random() > 0.5) bit.style.borderRadius = '50%';
+      layer.appendChild(bit);
+      setTimeout(() => bit.remove(), 1200);
+    }
+  }
+
   function runSpinAnimation(winIndex, onComplete) {
     const start = wheelRotation;
     const jitter = Math.random() - 0.5;
     const t = spinTimings();
+
+    const finish = () => {
+      triggerConfetti();
+      onComplete();
+    };
 
     const doNearMiss = winIndex !== GRAND_INDEX;
     if (doNearMiss) {
@@ -155,7 +195,7 @@
         animateRotation(r1, finalTarget, t.final, easeOutCubic, (r2) => {
           wheelRotation = r2;
           el.suspenseText.textContent = '';
-          onComplete();
+          finish();
         });
       });
     } else {
@@ -164,7 +204,7 @@
       animateRotation(start, finalTarget, t.grand, easeOutCubic, (r2) => {
         wheelRotation = r2;
         el.suspenseText.textContent = '';
-        onComplete();
+        finish();
       });
     }
   }
@@ -314,6 +354,62 @@
     }, t.settleDelay);
   }
 
+  function initParticles() {
+    const canvas = el.particles;
+    if (!canvas || prefersReducedMotion) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const dots = [];
+    const N = 70;
+
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.floor(window.innerWidth * dpr);
+      canvas.height = Math.floor(window.innerHeight * dpr);
+      canvas.style.width = `${window.innerWidth}px`;
+      canvas.style.height = `${window.innerHeight}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    for (let i = 0; i < N; i += 1) {
+      dots.push({
+        x: Math.random(),
+        y: Math.random(),
+        r: 0.4 + Math.random() * 1.8,
+        vx: (Math.random() - 0.5) * 0.00012,
+        vy: (Math.random() - 0.5) * 0.00012 - 0.00004,
+        a: 0.15 + Math.random() * 0.55,
+      });
+    }
+
+    let last = performance.now();
+    function tick(now) {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const dt = Math.min(50, now - last);
+      last = now;
+      ctx.clearRect(0, 0, w, h);
+      for (const d of dots) {
+        d.x += d.vx * dt;
+        d.y += d.vy * dt;
+        if (d.x < 0 || d.x > 1) d.vx *= -1;
+        if (d.y < 0 || d.y > 1) d.vy *= -1;
+        d.x = Math.max(0, Math.min(1, d.x));
+        d.y = Math.max(0, Math.min(1, d.y));
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(226, 232, 240, ${d.a})`;
+        ctx.arc(d.x * w, d.y * h, d.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      requestAnimationFrame(tick);
+    }
+
+    resize();
+    window.addEventListener('resize', resize, { passive: true });
+    requestAnimationFrame(tick);
+  }
+
   el.spinBtn.addEventListener('click', onSpin);
 
   el.copyBtn.addEventListener('click', async () => {
@@ -334,8 +430,10 @@
     if (ev.target === el.modalBackdrop) closeModal();
   });
 
+  setWheelTransform(0);
   buildLabels();
   closeModal();
+  initParticles();
 
   el.igUser.addEventListener('input', clearError);
 })();
